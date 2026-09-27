@@ -38,6 +38,8 @@ Paperclip events trigger the sync immediately, and a job also checks every minut
     curl -XPOST localhost:3100/api/plugins/<pluginId>/config -H 'content-type: application/json' \
       -d '{"companyId":"<companyId>","configJson":{"requireReview":true}}'
 
+After editing the plugin's code, restart Paperclip. Its in-place reload once stopped events from reaching the plugin; only the minute job kept syncing. While events are down, a person closing an agent-assigned issue in Paperclip is also sent to review.
+
 Config options: `orcaBin`, `requireReview` (default true), `reviewerUserId` (defaults to the issue's creator).
 
 ## Test

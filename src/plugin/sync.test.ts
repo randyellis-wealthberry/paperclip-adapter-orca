@@ -46,3 +46,8 @@ test("no change, no actions; echoes of our own writes are no-ops", () => {
 test("moving a card to review in Orca hands the issue to the reviewer", () => {
   assert.deepEqual(kinds(decide({ pc: "todo", orca: "in-progress" }, "todo", "in-review")), ["submitForReview:"]);
 });
+
+test("approving replaces the review prompt on the card", () => {
+  const r = decide({ pc: "in_review", orca: "in-review" }, "in_review", "completed", { cardComment: "Paperclip: awaiting your review." });
+  assert.deepEqual(kinds(r), ["setIssue:done", "setCard:completed"]);
+});
