@@ -20,7 +20,8 @@ import {
 } from "@paperclipai/adapter-utils/server-utils";
 import { isClaudeUnknownSessionError, parseClaudeStreamJson } from "@paperclipai/adapter-claude-local/server";
 import { isCodexUnknownSessionError, parseCodexJsonl } from "@paperclipai/adapter-codex-local/server";
-import { closeTerminal, createTerminal, ensureWorktree, orca, setCard } from "./orca.js";
+import { closeTerminal, createTerminal, ensureWorktree, getCard, orca, setCard, worktreeName } from "./orca.js";
+export { worktreeName };
 
 export const type = "orca_local";
 export const label = "Orca (Claude/Codex in an Orca worktree)";
@@ -49,11 +50,6 @@ export const sessionCodec: AdapterSessionCodec = {
   getDisplayId: (p) => str(p?.sessionId) || null,
 };
 
-/** Worktree name per task, so every heartbeat on the same issue lands in the same checkout. */
-export function worktreeName(taskId: string | null, agentId: string) {
-  const key = (taskId ?? `agent-${agentId}`).replace(/[^a-zA-Z0-9-]/g, "").slice(0, 40);
-  return `pc-${key}`;
-}
 
 /** The bash script typed into the Orca terminal. Secrets stay in the 0600 env file, never in scrollback. */
 export function buildRunScript(dir: string, argv: string[]) {
@@ -93,7 +89,9 @@ async function execute(ctx: AdapterExecutionContext): Promise<AdapterExecutionRe
   const resumeId = prev.agent === agentCli ? str(prev.sessionId) || null : null;
 
   const wt = await ensureWorktree(bin, repo, worktreeName(ident, agent.id), `Paperclip: ${title}`, str(prev.worktreeId) || undefined);
-  await setCard(bin, wt.id, `Paperclip: ${title} — running`, "in-progress");
+  // Only overwrite our own status lines; a human's review note on the card must survive until the sync reads it.
+  const own = (c?: string) => !c || (c.startsWith("Paperclip:") && !c.includes("awaiting your review"));
+  if (own((await getCard(bin, `id:${wt.id}`))?.comment)) await setCard(bin, wt.id, `Paperclip: ${title} — running`);
 
   // Run files live outside the worktree so they never end up in git.
   const dir = join(homedir(), ".paperclip", "orca-runs", runId);
@@ -168,10 +166,10 @@ async function execute(ctx: AdapterExecutionContext): Promise<AdapterExecutionRe
   const staleSession = !ok && Boolean(resumeId) &&
     (agentCli === "codex" ? isCodexUnknownSessionError(stdout, stderr) : isClaudeUnknownSessionError((parsed as { resultJson?: Record<string, unknown> | null }).resultJson ?? { result: stderr }));
 
-  await setCard(
+  // Card status is owned by the sync plugin (issue status <-> card); the adapter only writes the status line.
+  if (own((await getCard(bin, `id:${wt.id}`))?.comment)) await setCard(
     bin, wt.id,
     `Paperclip: ${title} — ${ok ? "run finished" : cancelled ? "cancelled" : timedOut ? "timed out" : `failed (exit ${exitCode})`}`,
-    ok ? "in-review" : undefined,
   );
 
   return {

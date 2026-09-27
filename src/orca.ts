@@ -31,8 +31,17 @@ export async function ensureWorktree(bin: string, repo: string, name: string, co
   return { id: created.worktree.id, path: created.worktree.path };
 }
 
-export async function setCard(bin: string, worktreeId: string, comment: string, status?: string) {
-  const args = ["worktree", "set", "--worktree", `id:${worktreeId}`, "--comment", comment];
+export type Card = Worktree & { workspaceStatus?: string; comment?: string };
+
+/** Reads a worktree's card by selector (e.g. `id:<id>` or `name:<name>`), or null if it doesn't exist. */
+export async function getCard(bin: string, selector: string): Promise<Card | null> {
+  const res = await orca(bin, ["worktree", "show", "--worktree", selector]).catch(() => null);
+  return res?.worktree ?? null;
+}
+
+export async function setCard(bin: string, worktreeId: string, comment?: string, status?: string) {
+  const args = ["worktree", "set", "--worktree", `id:${worktreeId}`];
+  if (comment) args.push("--comment", comment);
   if (status) args.push("--workspace-status", status);
   // Card updates are cosmetic; never fail a run over them.
   await orca(bin, args).catch(() => {});
@@ -47,4 +56,10 @@ export async function createTerminal(bin: string, worktreeId: string, title: str
 
 export async function closeTerminal(bin: string, handle: string) {
   await orca(bin, ["terminal", "close", "--terminal", handle]).catch(() => {});
+}
+
+/** Worktree name per task, so every heartbeat on the same issue lands in the same checkout. */
+export function worktreeName(taskId: string | null, agentId: string) {
+  const key = (taskId ?? `agent-${agentId}`).replace(/[^a-zA-Z0-9-]/g, "").slice(0, 40);
+  return `pc-${key}`;
 }
