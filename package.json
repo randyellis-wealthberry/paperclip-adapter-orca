@@ -1,6 +1,6 @@
 {
   "name": "paperclip-adapter-orca",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Paperclip adapter + sync plugin: run agents in Orca worktrees, review in Orca",
   "type": "module",
   "license": "MIT",
