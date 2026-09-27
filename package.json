@@ -44,5 +44,13 @@
     "orca",
     "claude-code",
     "codex"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/randyellis-wealthberry/paperclip-adapter-orca.git"
+  },
+  "homepage": "https://github.com/randyellis-wealthberry/paperclip-adapter-orca#readme",
+  "bugs": {
+    "url": "https://github.com/randyellis-wealthberry/paperclip-adapter-orca/issues"
+  }
 }
