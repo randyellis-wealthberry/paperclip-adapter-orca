@@ -23,8 +23,6 @@
     "prepublishOnly": "npm test"
   },
   "dependencies": {
-    "@paperclipai/adapter-claude-local": "^2026.916.1",
-    "@paperclipai/adapter-codex-local": "^2026.916.1",
     "@paperclipai/adapter-utils": "^2026.916.1",
     "@paperclipai/plugin-sdk": "^2026.916.1"
   },

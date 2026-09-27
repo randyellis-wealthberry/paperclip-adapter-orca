@@ -18,8 +18,7 @@ import {
   renderTemplate,
   selectPaperclipTaskMarkdown,
 } from "@paperclipai/adapter-utils/server-utils";
-import { isClaudeUnknownSessionError, parseClaudeStreamJson } from "@paperclipai/adapter-claude-local/server";
-import { isCodexUnknownSessionError, parseCodexJsonl } from "@paperclipai/adapter-codex-local/server";
+import { isUnknownSessionError, parseClaudeStreamJson, parseCodexJsonl } from "./parse.js";
 import { closeTerminal, createTerminal, ensureWorktree, getCard, orca, setCard, worktreeName } from "./orca.js";
 export { worktreeName };
 
@@ -163,8 +162,7 @@ async function execute(ctx: AdapterExecutionContext): Promise<AdapterExecutionRe
   const cancelled = Boolean(ctx.signal?.aborted);
   const ok = exitCode === 0;
   // A stale session id would otherwise fail every future heartbeat; drop it so the next run starts fresh.
-  const staleSession = !ok && Boolean(resumeId) &&
-    (agentCli === "codex" ? isCodexUnknownSessionError(stdout, stderr) : isClaudeUnknownSessionError((parsed as { resultJson?: Record<string, unknown> | null }).resultJson ?? { result: stderr }));
+  const staleSession = !ok && Boolean(resumeId) && isUnknownSessionError(agentCli, parsed, stdout, stderr);
 
   // Card status is owned by the sync plugin (issue status <-> card); the adapter only writes the status line.
   if (own((await getCard(bin, `id:${wt.id}`))?.comment)) await setCard(
@@ -179,8 +177,8 @@ async function execute(ctx: AdapterExecutionContext): Promise<AdapterExecutionRe
     errorMessage: ok ? undefined : cancelled ? "cancelled" : timedOut ? "timed out" : stderr.trim().slice(-2000) || `exit ${exitCode}`,
     usage: parsed.usage ?? undefined,
     usageBasis: "per_run",
-    costUsd: "costUsd" in parsed ? parsed.costUsd : undefined,
-    model: "model" in parsed ? parsed.model || undefined : undefined,
+    costUsd: parsed.costUsd ?? undefined,
+    model: parsed.model || undefined,
     summary: parsed.summary,
     sessionId: parsed.sessionId,
     sessionDisplayId: parsed.sessionId,
