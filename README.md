@@ -4,7 +4,15 @@ This package contains two pieces: the `orca_local` adapter and the `orca.sync` p
 
 ## Setup
 
-You need Node ≥ 24, a running [Paperclip](https://github.com/paperclipai/paperclip) server, and the Claude Code or Codex CLI logged in on the same machine.
+With [Orca](https://github.com/stablyai/orca/releases) and [Paperclip](https://github.com/paperclipai/paperclip) running (Node ≥ 24), run this from the repo your agents should work in:
+
+    npx paperclip-adapter-orca
+
+It registers the repo in Orca, installs the adapter and sync plugin into Paperclip, configures the plugin for every company, and prints the agent config to paste. Pass a path to use a different repo, set `PAPERCLIP_URL` if Paperclip isn't on `localhost:3100`, and set `ORCA_BIN` if `orca` isn't on PATH. It's safe to run again.
+
+Then in Paperclip, create an agent with adapter **`orca_local`**, paste the printed config, turn on its heartbeat, and assign it an issue.
+
+## Manual setup
 
 ### 1. Install Orca
 
