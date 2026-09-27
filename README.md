@@ -2,6 +2,51 @@
 
 This package contains two pieces: the `orca_local` adapter and the `orca.sync` plugin.
 
+## Setup
+
+You need Node ≥ 24, a running [Paperclip](https://github.com/paperclipai/paperclip) server, and the Claude Code or Codex CLI logged in on the same machine.
+
+### 1. Install Orca
+
+1. Download Orca from [github.com/stablyai/orca/releases](https://github.com/stablyai/orca/releases) and launch it.
+2. Check that the `orca` CLI is on your PATH and the runtime is up:
+
+       orca status --json   # runtime.state should be "ready"
+
+   On Linux, `orca` can resolve to the GNOME screen reader. If it does, set `orcaBin` in the agent config to the Orca CLI's full path.
+3. Register the repo your agents will work in:
+
+       orca repo add --path /abs/path/to/repo
+       orca repo list        # note the name for the agent config
+
+**Remote Orca (optional).** To run Orca on a server (e.g. Railway, see `deploy/orca-service/`), start it with `orca serve`, copy the `orca://pair?code=...` link from its logs, and pair your local Orca with it:
+
+    orca environment add --name my-server --pairing-code 'orca://pair?code=...'
+    orca status --environment my-server --json
+
+The adapter drives the `orca` CLI on the Paperclip host, so it runs work on that machine's Orca.
+
+### 2. Install in Paperclip
+
+Install the adapter:
+
+    curl -XPOST localhost:3100/api/adapters/install -H 'content-type: application/json' \
+      -d '{"packageName":"paperclip-adapter-orca"}'
+
+Or go to Paperclip's Settings → Adapters and install `paperclip-adapter-orca`.
+
+Install the sync plugin (optional, see [below](#sync-plugin-orcasync)):
+
+    paperclipai plugin install paperclip-adapter-orca
+
+### 3. Create an agent
+
+In Paperclip, create an agent with adapter **`orca_local`** and config:
+
+    {"repo": "name:<orca repo name>", "agent": "claude"}
+
+Turn on its heartbeat, assign it an issue, and invoke it. A `pc-<ISSUE>` worktree and a terminal appear in Orca. See [docs/configuration.md](docs/configuration.md) for all options and [docs/troubleshooting.md](docs/troubleshooting.md) if something fails.
+
 ## Adapter
 
 Paperclip adapter (`orca_local`). It runs each Paperclip issue as a headless Claude Code or Codex session inside its own Orca worktree (`pc-<ISSUE>`), in a visible Orca terminal. Output streams into the Paperclip run log, the session resumes on later heartbeats, and the Orca workspace card shows the run's status.
