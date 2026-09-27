@@ -8,7 +8,10 @@
     "adapterUiParser": "1.0.0"
   },
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./dist/index.js",
+    "./plugin/manifest": "./dist/plugin/manifest.js",
+    "./plugin/worker": "./dist/plugin/worker.js",
+    "./package.json": "./package.json"
   },
   "files": [
     "dist",
