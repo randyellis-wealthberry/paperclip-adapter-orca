@@ -11,14 +11,16 @@
     ".": "./dist/index.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "!dist/**/*.test.*"
   ],
   "engines": {
     "node": ">=24"
   },
   "scripts": {
     "build": "tsc",
-    "test": "tsc && node --test dist/*.test.js dist/plugin/*.test.js"
+    "test": "tsc && node --test dist/*.test.js dist/plugin/*.test.js",
+    "prepublishOnly": "npm test"
   },
   "dependencies": {
     "@paperclipai/adapter-claude-local": "^2026.916.1",
@@ -33,5 +35,13 @@
   "paperclipPlugin": {
     "manifest": "./dist/plugin/manifest.js",
     "worker": "./dist/plugin/worker.js"
-  }
+  },
+  "keywords": [
+    "paperclip",
+    "paperclip-adapter",
+    "paperclip-plugin",
+    "orca",
+    "claude-code",
+    "codex"
+  ]
 }

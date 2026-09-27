@@ -1,11 +1,17 @@
 import { execFile } from "node:child_process";
+import { existsSync } from "node:fs";
 import { promisify } from "node:util";
 
 const run = promisify(execFile);
 
 /** Calls `orca <args> --json` and returns `result`, throwing on `ok: false`. */
 export async function orca(bin: string, args: string[]): Promise<any> {
-  const { stdout } = await run(bin, [...args, "--json"], { maxBuffer: 16 * 1024 * 1024 }).catch((err) => {
+  // Paperclip's PATH often differs from your shell's, so a configured absolute path wins, then PATH.
+  const exe = existsSync(bin) ? bin : "orca";
+  const { stdout } = await run(exe, [...args, "--json"], { maxBuffer: 16 * 1024 * 1024 }).catch((err) => {
+    if (err.code === "ENOENT") {
+      throw new Error(`orca CLI not found (tried ${bin} and PATH). Install Orca, or set orcaBin to the output of \`which orca\`.`);
+    }
     // orca exits non-zero on errors but still prints a JSON envelope on stdout.
     if (err.stdout) return { stdout: err.stdout as string };
     throw err;
