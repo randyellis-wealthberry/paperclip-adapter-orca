@@ -1,0 +1,24 @@
+{
+  "name": "paperclip-adapter-orca",
+  "version": "0.1.0",
+  "description": "Paperclip adapter that runs agents as Claude/Codex sessions inside Orca worktrees",
+  "type": "module",
+  "license": "MIT",
+  "paperclip": { "adapterUiParser": "1.0.0" },
+  "exports": { ".": "./dist/index.js" },
+  "files": ["dist"],
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "build": "tsc",
+    "test": "tsc && node --test dist/*.test.js"
+  },
+  "dependencies": {
+    "@paperclipai/adapter-claude-local": "^2026.916.1",
+    "@paperclipai/adapter-codex-local": "^2026.916.1",
+    "@paperclipai/adapter-utils": "^2026.916.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.7.0"
+  }
+}
