@@ -18,8 +18,8 @@ import {
   renderTemplate,
   selectPaperclipTaskMarkdown,
 } from "@paperclipai/adapter-utils/server-utils";
-import { parseClaudeStreamJson } from "@paperclipai/adapter-claude-local/server";
-import { parseCodexJsonl } from "@paperclipai/adapter-codex-local/server";
+import { isClaudeUnknownSessionError, parseClaudeStreamJson } from "@paperclipai/adapter-claude-local/server";
+import { isCodexUnknownSessionError, parseCodexJsonl } from "@paperclipai/adapter-codex-local/server";
 import { closeTerminal, createTerminal, ensureWorktree, orca, setCard } from "./orca.js";
 
 export const type = "orca_local";
@@ -92,7 +92,7 @@ async function execute(ctx: AdapterExecutionContext): Promise<AdapterExecutionRe
   const prev = sessionCodec.deserialize(runtime.sessionParams) ?? {};
   const resumeId = prev.agent === agentCli ? str(prev.sessionId) || null : null;
 
-  const wt = await ensureWorktree(bin, repo, worktreeName(ident, agent.id), `Paperclip: ${title}`);
+  const wt = await ensureWorktree(bin, repo, worktreeName(ident, agent.id), `Paperclip: ${title}`, str(prev.worktreeId) || undefined);
   await setCard(bin, wt.id, `Paperclip: ${title} — running`, "in-progress");
 
   // Run files live outside the worktree so they never end up in git.
@@ -102,6 +102,8 @@ async function execute(ctx: AdapterExecutionContext): Promise<AdapterExecutionRe
   const env: Record<string, string> = {
     ...buildPaperclipEnv(agent),
     PAPERCLIP_RUN_ID: runId,
+    PAPERCLIP_WORKSPACE_CWD: wt.path,
+    PAPERCLIP_WORKSPACE_WORKTREE_PATH: wt.path,
     ...(taskId ? { PAPERCLIP_TASK_ID: taskId } : {}),
     ...(str(context.wakeReason) ? { PAPERCLIP_WAKE_REASON: str(context.wakeReason) } : {}),
     ...(str(context.wakeCommentId) ? { PAPERCLIP_WAKE_COMMENT_ID: str(context.wakeCommentId) } : {}),
@@ -162,6 +164,9 @@ async function execute(ctx: AdapterExecutionContext): Promise<AdapterExecutionRe
   const parsed = agentCli === "codex" ? parseCodexJsonl(stdout) : parseClaudeStreamJson(stdout);
   const cancelled = Boolean(ctx.signal?.aborted);
   const ok = exitCode === 0;
+  // A stale session id would otherwise fail every future heartbeat; drop it so the next run starts fresh.
+  const staleSession = !ok && Boolean(resumeId) &&
+    (agentCli === "codex" ? isCodexUnknownSessionError(stdout, stderr) : isClaudeUnknownSessionError((parsed as { resultJson?: Record<string, unknown> | null }).resultJson ?? { result: stderr }));
 
   await setCard(
     bin, wt.id,
@@ -181,7 +186,8 @@ async function execute(ctx: AdapterExecutionContext): Promise<AdapterExecutionRe
     summary: parsed.summary,
     sessionId: parsed.sessionId,
     sessionDisplayId: parsed.sessionId,
-    sessionParams: { agent: agentCli, sessionId: parsed.sessionId ?? resumeId, worktreeId: wt.id, cwd: wt.path },
+    clearSession: staleSession || undefined,
+    sessionParams: staleSession ? undefined : { agent: agentCli, sessionId: parsed.sessionId ?? resumeId, worktreeId: wt.id, cwd: wt.path },
   };
 }
 

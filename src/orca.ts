@@ -18,8 +18,11 @@ export async function orca(bin: string, args: string[]): Promise<any> {
 export type Worktree = { id: string; path: string };
 
 /** Finds the Orca worktree named `name`, or creates it from `repo`. */
-export async function ensureWorktree(bin: string, repo: string, name: string, comment: string): Promise<Worktree> {
-  const existing = await orca(bin, ["worktree", "show", "--worktree", `name:${name}`]).catch(() => null);
+export async function ensureWorktree(bin: string, repo: string, name: string, comment: string, prevId?: string): Promise<Worktree> {
+  // Prefer the exact worktree a previous run used; names are not unique across repos.
+  const existing =
+    (prevId && (await orca(bin, ["worktree", "show", "--worktree", `id:${prevId}`]).catch(() => null))) ||
+    (await orca(bin, ["worktree", "show", "--worktree", `name:${name}`]).catch(() => null));
   const wt = existing?.worktree ?? existing;
   if (wt?.id && wt?.path) return { id: wt.id, path: wt.path };
   const created = await orca(bin, [
