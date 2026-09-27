@@ -10,7 +10,7 @@ With [Orca](https://github.com/stablyai/orca/releases) and [Paperclip](https://g
 
 It registers the repo in Orca, installs the adapter and sync plugin into Paperclip, configures the plugin for every company, and prints the agent config to paste. Pass a path to use a different repo, set `PAPERCLIP_URL` if Paperclip isn't on `localhost:3100`, and set `ORCA_BIN` if `orca` isn't on PATH. It's safe to run again.
 
-**From inside Orca:** open Orca's plugin settings, install from git URL `https://github.com/randyellis-wealthberry/paperclip-adapter-orca`, then run **Paperclip: Connect this repo** from the command palette in a worktree with a terminal open. It types the installer command into that terminal; press Enter to run it.
+**From inside Orca:** open Settings → Plugins → Install plugin → Git URL and enter `https://github.com/randyellis-wealthberry/paperclip-adapter-orca#v0.1.5` (Orca requires a pinned tag), then run **Paperclip: Connect this repo** from the command palette in a worktree with a terminal open. It types the installer command into that terminal; press Enter to run it.
 
 Then in Paperclip, create an agent with adapter **`orca_local`**, paste the printed config, turn on its heartbeat, and assign it an issue.
 
