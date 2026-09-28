@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // One-command setup: `npx paperclip-adapter-orca [repo path]` (PAPERCLIP_URL overrides localhost:3100).
+import { spawn } from "node:child_process";
 import { resolve } from "node:path";
 import { orca } from "./orca.js";
 
@@ -60,7 +61,18 @@ if (pcOk) {
 }
 
 console.log(`
-Next: in Paperclip, create an agent with adapter "orca_local" and config
+Next: create an agent with adapter "orca_local" and config
   {"repo": "name:${repoName}", "agent": "claude"}
 then turn on its heartbeat and assign it an issue.`);
+if (pcOk) {
+  // Opens Paperclip's new-agent page with the adapter preselected; the config above still has to be pasted.
+  const [company] = await api("GET", "/companies").catch(() => []);
+  const q = new URLSearchParams({ adapterType: "orca_local", name: "Orca agent" });
+  const url = `${base.replace(/\/api$/, "")}/${company?.issuePrefix ? company.issuePrefix + "/" : ""}agents/new?${q}`;
+  const opener = process.platform === "darwin" ? "open" : process.platform === "win32" ? "explorer" : "xdg-open";
+  spawn(opener, [url], { stdio: "ignore", detached: true }).on("error", () => {}).unref();
+  console.log(`Opening ${url}`);
+} else {
+  console.log("Start Paperclip with `npx paperclipai run`, then run this again.");
+}
 process.exitCode = orcaOk && pcOk ? 0 : 1;
