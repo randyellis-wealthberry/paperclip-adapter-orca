@@ -61,11 +61,10 @@ if (pcOk) {
 }
 
 console.log(`
-Next: create an agent with adapter "orca_local" and config
-  {"repo": "name:${repoName}", "agent": "claude"}
-then turn on its heartbeat and assign it an issue.`);
+Next: create an agent with adapter "orca_local", then on its Configuration tab
+pick Orca repo "${repoName}", turn on the heartbeat, and assign it an issue.`);
 if (pcOk) {
-  // Opens Paperclip's new-agent page with the adapter preselected; the config above still has to be pasted.
+  // Opens Paperclip's new-agent page with the adapter preselected.
   const [company] = await api("GET", "/companies").catch(() => []);
   const q = new URLSearchParams({ adapterType: "orca_local", name: "Orca agent" });
   const url = `${base.replace(/\/api$/, "")}/${company?.issuePrefix ? company.issuePrefix + "/" : ""}agents/new?${q}`;

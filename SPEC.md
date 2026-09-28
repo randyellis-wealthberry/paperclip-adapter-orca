@@ -175,10 +175,15 @@ Residual risks (documented, accepted at v0.1):
   Exit 1 when Orca or Paperclip is unreachable. Idempotent.
 - **Paperclip dashboard widget** (`orca.sync` slot `orca-setup`, `src/plugin/ui`):
   data key `setup` returns `{orca:{ok,error?}, repos, agents}` (orca_local agents
-  only). Shows a checklist until an orca_local agent exists, then a one-line
-  "Orca connected" summary. Creating the agent stays a host navigation plus
-  copy-config: the plugin SDK has no agent-create capability, and the widget does
-  not call Paperclip's REST API directly.
+  only). Shows a checklist until every orca_local agent has a repo, then a one-line
+  "Orca connected" summary. Creating the agent stays a host navigation: the
+  plugin SDK has no agent-create capability, and the widget does not call
+  Paperclip's REST API directly.
+- **Adapter config schema** (`getConfigSchema`): `repo` (combobox, options
+  `path:<abs>` from `orca repo list`, empty with a hint if Orca is down) and
+  `agent` (claude | codex). Paperclip renders these on the agent's
+  Configuration tab; its new-agent wizard does not, so new agents start without
+  a repo and `execute` fails with a message pointing to that tab.
 - **Orca plugin** (`orca-plugin.json`, `orca-plugin/`): command
   `paperclip.connect` and sidebar panel `paperclip-setup` both type
   `npx -y paperclip-adapter-orca@<plugin version>` into the focused worktree's

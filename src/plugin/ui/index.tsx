@@ -1,7 +1,5 @@
 // Dashboard widget: first-time setup checklist for running Paperclip agents in Orca.
-import { useState } from "react";
 import {
-  copyTextToClipboard,
   useHostNavigation,
   usePluginData,
   type PluginWidgetProps,
@@ -26,21 +24,18 @@ function Step({ done, title, children }: { done: boolean; title: string; childre
 export function OrcaSetupWidget({ context }: PluginWidgetProps) {
   const { data, loading, error, refresh } = usePluginData<SetupStatus>("setup", { companyId: context.companyId });
   const nav = useHostNavigation();
-  const [repo, setRepo] = useState("");
-  const [copied, setCopied] = useState(false);
 
   if (loading && !data) return <section aria-label="Orca setup">Checking Orca…</section>;
   if (error || !data) return <section aria-label="Orca setup">Couldn't check Orca setup: {error?.message ?? "no data"}</section>;
 
-  const picked = repo || data.repos[0]?.name || "";
-  const config = JSON.stringify({ repo: `name:${picked}`, agent: "claude" });
-
-  if (data.agents.length) {
+  const ready = data.agents.filter((a) => a.repo);
+  const unset = data.agents.find((a) => !a.repo);
+  if (ready.length && !unset) {
     return (
       <section aria-label="Orca setup">
         <strong>Orca connected</strong>
         <div style={muted}>
-          {data.agents.map((a) => a.name).join(", ")} run{data.agents.length === 1 ? "s" : ""} in Orca worktrees. Assign an issue to see it
+          {ready.map((a) => a.name).join(", ")} run{ready.length === 1 ? "s" : ""} in Orca worktrees. Assign an issue to see it
           appear in Orca.
         </div>
       </section>
@@ -57,28 +52,16 @@ export function OrcaSetupWidget({ context }: PluginWidgetProps) {
       <Step done={data.repos.length > 0} title="Repo registered in Orca">
         Run <code>npx paperclip-adapter-orca</code> in your repo, or add it in Orca. <button onClick={refresh}>Check again</button>
       </Step>
-      <Step done={false} title="Create an Orca agent">
-        {data.repos.length > 0 && (
-          <>
-            <div style={row}>
-              <label>
-                Repo{" "}
-                <select value={picked} onChange={(e) => setRepo(e.target.value)}>
-                  {data.repos.map((r) => (
-                    <option key={r.path} value={r.name}>{r.name}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <div style={row}>
-              <code>{config}</code>
-              <button onClick={() => copyTextToClipboard(config).then(() => setCopied(true))}>{copied ? "Copied" : "Copy config"}</button>
-            </div>
-          </>
-        )}
+      <Step done={!!unset} title="Create an Orca agent">
         <button onClick={() => nav.navigate("/agents/new?adapterType=orca_local&name=Orca+agent")}>New Orca agent</button>{" "}
-        Paste the config, turn on the heartbeat, and save.
+        Finish setup, then open the agent's <strong>Configuration</strong> tab and pick an <strong>Orca repo</strong>.
       </Step>
+      {unset && (
+        <Step done={false} title={`Pick a repo for ${unset.name}`}>
+          <button onClick={() => nav.navigate(`/agents/${unset.id}/configuration`)}>Open Configuration</button> and choose an{" "}
+          <strong>Orca repo</strong>, then <button onClick={refresh}>check again</button>.
+        </Step>
+      )}
     </section>
   );
 }

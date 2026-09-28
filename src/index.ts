@@ -3,6 +3,7 @@ import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type {
+  AdapterConfigSchema,
   AdapterEnvironmentTestContext,
   AdapterEnvironmentTestResult,
   AdapterExecutionContext,
@@ -78,7 +79,7 @@ async function execute(ctx: AdapterExecutionContext): Promise<AdapterExecutionRe
   const bin = str(config.orcaBin, "/usr/local/bin/orca");
   const repo = str(config.repo);
   const agentCli = str(config.agent, "claude");
-  if (!repo) return { exitCode: 1, signal: null, timedOut: false, errorMessage: "orca_local: config.repo is required" };
+  if (!repo) return { exitCode: 1, signal: null, timedOut: false, errorMessage: "orca_local: no Orca repo set. Pick one under the agent's Configuration → Orca repo." };
 
   const taskId = str(context.taskId) || str(context.issueId) || null;
   const issue = (context.paperclipIssue ?? (context.paperclipWake as any)?.issue ?? {}) as Record<string, unknown>;
@@ -197,7 +198,7 @@ async function testEnvironment(ctx: AdapterEnvironmentTestContext): Promise<Adap
     checks.push({ level: "info", code: "orca_ready", message: `Orca ${status.runtime.appVersion} is running` });
   }
   const repo = str(ctx.config.repo);
-  if (!repo) checks.push({ level: "error", code: "repo_missing", message: "config.repo is required", hint: "e.g. name:my-repo (see `orca repo list`)" });
+  if (!repo) checks.push({ level: "error", code: "repo_missing", message: "config.repo is required", hint: "Pick one under Configuration → Orca repo, or set e.g. name:my-repo (see `orca repo list`)" });
   else if (!(await orca(bin, ["repo", "show", "--repo", repo]).catch(() => null)))
     checks.push({ level: "error", code: "repo_not_found", message: `Orca repo ${repo} not found` });
   return {
@@ -208,6 +209,33 @@ async function testEnvironment(ctx: AdapterEnvironmentTestContext): Promise<Adap
   };
 }
 
+/** New-agent form fields. Repo options come from the local Orca, so the form works without pasting config. */
+export async function getConfigSchema(bin = "/usr/local/bin/orca"): Promise<AdapterConfigSchema> {
+  const repos: any[] = await orca(bin, ["repo", "list"]).then((r) => r.repos ?? [], () => []);
+  return {
+    fields: [
+      {
+        key: "repo",
+        label: "Orca repo",
+        type: "combobox",
+        required: true,
+        options: repos.map((r) => ({ label: r.displayName ?? r.path, value: `path:${r.path}` })),
+        hint: repos.length ? "Each issue gets its own worktree of this repo." : "No Orca repos found. Start Orca and add a repo, or type path:/abs/repo.",
+      },
+      {
+        key: "agent",
+        label: "Agent CLI",
+        type: "select",
+        default: "claude",
+        options: [{ label: "Claude Code", value: "claude" }, { label: "Codex", value: "codex" }],
+      },
+    ],
+  };
+}
+
 export function createServerAdapter(): ServerAdapterModule {
-  return { type, execute, testEnvironment, sessionCodec, agentConfigurationDoc, supportsLocalAgentJwt: true };
+  return {
+    type, execute, testEnvironment, sessionCodec, agentConfigurationDoc, supportsLocalAgentJwt: true,
+    getConfigSchema: () => getConfigSchema(),
+  };
 }

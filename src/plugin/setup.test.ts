@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { setupStatus } from "./setup.js";
 
 const agents = async () => [
-  { id: "a1", name: "Orca agent", adapterType: "orca_local" },
+  { id: "a1", name: "Orca agent", adapterType: "orca_local", adapterConfig: { repo: "name:web" } },
+  { id: "a3", name: "New", adapterType: "orca_local", adapterConfig: {} },
   { id: "a2", name: "Other", adapterType: "claude_local" },
 ];
 
@@ -13,7 +14,7 @@ test("ready Orca lists repos and only orca_local agents", async () => {
   assert.deepEqual(await setupStatus(orca, agents), {
     orca: { ok: true },
     repos: [{ name: "web", path: "/r/web" }],
-    agents: [{ id: "a1", name: "Orca agent" }],
+    agents: [{ id: "a1", name: "Orca agent", repo: "name:web" }, { id: "a3", name: "New", repo: null }],
   });
 });
 

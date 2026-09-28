@@ -5,9 +5,19 @@ summary: Diagnosis paths for the Paperclip ⇄ Orca adapter — ordered by likel
 
 # Troubleshooting `orca_local`
 
-## Run fails immediately: `orca_local: config.repo is required`
-Set adapter config `repo`; valid forms `id:<repoId>`, `name:<name>`,
+## Run fails immediately: `orca_local: no Orca repo set`
+Paperclip's new-agent wizard doesn't show adapter fields, so new agents start
+without a repo. Open the agent's **Configuration** tab and pick an **Orca repo**.
+If the list is empty, Orca isn't running on the Paperclip host or has no repos;
+you can also type a value. Valid forms `id:<repoId>`, `name:<name>`,
 `path:/abs/repo` (find one via `orca repo list --json`).
+
+## Dashboard widget or panel issues
+- Widget says "Couldn't check Orca setup": the `orca.sync` plugin worker is down;
+  check its status under Settings → Plugins.
+- Orca panel button says "Open a terminal in this worktree first": the panel
+  types into the focused worktree's first terminal; open one with a shell prompt.
+- Orca refuses the git URL: append a tag, e.g. `#v0.2.0`.
 
 ## Every heartbeat fails with the same session error, then self-clears
 A resumed session id went stale (CLI upgrade, cleaned session store, Orca

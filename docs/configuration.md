@@ -7,6 +7,9 @@ summary: Full adapter configuration, worktree and session semantics for the Pape
 
 ## Minimal setup
 
+On the agent's **Configuration** tab, pick an **Orca repo** (the list comes from
+`orca repo list` on the Paperclip host) and an **Agent CLI**. That saves:
+
 ```json
 {
   "repo": "name:my-repo",
