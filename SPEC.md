@@ -190,6 +190,12 @@ Residual risks (documented, accepted at v0.1):
   first terminal **without Enter**. The panel is sandboxed (no network, no
   links, no storage). The package, Orca manifest, and panel versions must match
   (enforced by `src/release.test.ts`). Orca installs by git URL pinned to a tag.
+  The worker subscribes to `worktree.created` (`events:subscribe`); the first
+  worktree whose branch ends in `pc-<…>` shows one "Paperclip connected"
+  notification, remembered in plugin `storage` so it never repeats. The worker
+  makes no network calls: Orca plugin API v0 has no network capability, so
+  Paperclip status and review actions stay on the card (via `orca.sync`), and
+  "agent finished" alerts come from Orca itself.
 - **UI parser** (`src/ui-parser.ts`, `exports["./ui-parser"]`, contract 1.0.0):
   zero-import `parseStdoutLine`. `[orca] …` lines → `system`; claude stream-json
   and codex jsonl → assistant / thinking / tool_call / tool_result entries;

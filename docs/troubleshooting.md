@@ -17,7 +17,11 @@ you can also type a value. Valid forms `id:<repoId>`, `name:<name>`,
   check its status under Settings → Plugins.
 - Orca panel button says "Open a terminal in this worktree first": the panel
   types into the focused worktree's first terminal; open one with a shell prompt.
-- Orca refuses the git URL: append a tag, e.g. `#v0.2.0`.
+- No "Paperclip connected" notification: it fires once, when the first
+  `pc-<ISSUE>` worktree is created, so none appears until an agent runs an issue.
+  If agents already ran before the plugin was installed, none will appear; that's
+  expected. Also check Orca notifications are allowed in system settings.
+- Orca refuses the git URL: append a tag, e.g. `#v0.3.0`.
 
 ## Every heartbeat fails with the same session error, then self-clears
 A resumed session id went stale (CLI upgrade, cleaned session store, Orca

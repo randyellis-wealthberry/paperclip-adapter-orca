@@ -13,13 +13,13 @@
 <p>Run Paperclip agents in Orca worktrees.</p>
 <ol>
   <li><strong>Start Paperclip</strong><br>In a terminal, run <code>npx paperclipai run</code>.</li>
-  <li><strong>Connect this repo</strong><br>Types the installer into this worktree's terminal. Check it's a shell prompt, then press Enter.<br><br>
+  <li><strong>Connect this repo</strong><br>Types the installer into this worktree's terminal. Check it's a shell prompt, then press Enter. Each step prints ✔ or ✘; fix any ✘ and run it again.<br><br>
     <button id="run">Type installer into terminal</button><div id="msg" role="status"></div></li>
   <li><strong>Create the agent</strong><br>The installer opens Paperclip's new-agent page. Finish setup, then on the agent's Configuration tab pick an <strong>Orca repo</strong> and turn on the heartbeat.</li>
-  <li><strong>Assign an issue</strong><br>A <code>pc-&lt;ISSUE&gt;</code> worktree appears here with the agent working in its terminal.</li>
+  <li><strong>Assign an issue</strong><br>A <code>pc-&lt;ISSUE&gt;</code> worktree appears here with the agent working in its terminal, and Orca notifies you that Paperclip is connected. Approve by moving the card to Completed; request changes by moving it back to In progress with a comment.</li>
 </ol>
 <script>
-  const VERSION = "0.2.0";
+  const VERSION = "0.3.0";
   let next = 0;
   const pending = new Map();
   addEventListener("message", (e) => {

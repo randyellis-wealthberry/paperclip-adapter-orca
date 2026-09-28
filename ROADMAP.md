@@ -95,10 +95,12 @@ integration.
 
 ### R2.3 Card/issue state machine mapping [K1 completion]
 
-- Two-way: card → issue (a human dragging an Orca card to `completed` posts a
-  Paperclip comment for the owning agent to confirm) requires Orca → Paperclip
-  webhook; documented manual path first (`orca automation` calling the
-  Paperclip API).
+- [x] Two-way card ⇄ issue with a review gate ships in the `orca.sync`
+  Paperclip plugin (`src/plugin/sync.ts`): moving the card is the approve /
+  request-changes action.
+- [ ] Live Paperclip status inside Orca (panel/commands) is blocked on Orca's
+  plugin API gaining a network capability (`net:fetch` in a later phase); v0
+  panels can't read storage and workers have no declared network access.
 
 ## R3 — Orca automations as heartbeat prewarmers [K4]
 
