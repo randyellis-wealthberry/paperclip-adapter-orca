@@ -3,14 +3,40 @@
   "id": "paperclip",
   "publisher": "randyellis-wealthberry",
   "name": "Paperclip",
-  "version": "0.1.6",
+  "version": "0.2.0",
   "description": "Connect Orca to Paperclip: installs the orca_local adapter and sync plugin so Paperclip agents run in Orca worktrees.",
   "repository": "https://github.com/randyellis-wealthberry/paperclip-adapter-orca",
-  "engines": { "orca": ">=1.4.215" },
+  "engines": {
+    "orca": ">=1.4.215"
+  },
   "pluginApi": 1,
   "main": "orca-plugin/index.mjs",
   "contributes": {
-    "commands": [{ "id": "paperclip.connect", "title": "Paperclip: Connect this repo", "context": "worktree" }]
+    "commands": [
+      {
+        "id": "paperclip.connect",
+        "title": "Paperclip: Connect this repo",
+        "context": "worktree"
+      }
+    ],
+    "panels": [
+      {
+        "id": "paperclip-setup",
+        "title": "Paperclip",
+        "icon": "paperclip",
+        "entry": "orca-plugin/panel.html"
+      }
+    ]
   },
-  "capabilities": [{ "kind": "workspace:read" }, { "kind": "terminal:send" }, { "kind": "notifications:show" }]
+  "capabilities": [
+    {
+      "kind": "workspace:read"
+    },
+    {
+      "kind": "terminal:send"
+    },
+    {
+      "kind": "notifications:show"
+    }
+  ]
 }

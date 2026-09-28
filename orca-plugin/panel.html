@@ -1,0 +1,49 @@
+<!-- Orca sidebar panel: first-time setup guide. Sandboxed: no network or links, only panel actions. -->
+<style>
+  body { font: 13px/1.5 system-ui, sans-serif; color: var(--foreground); background: var(--background); margin: 0; padding: 12px; }
+  h1 { font-size: 15px; margin: 0 0 4px; }
+  p { color: var(--muted-foreground); margin: 0 0 12px; }
+  ol { padding-left: 18px; margin: 0 0 12px; }
+  li { margin-bottom: 10px; }
+  code { background: var(--muted); border-radius: 4px; padding: 1px 4px; }
+  button { font: inherit; color: var(--primary-foreground); background: var(--primary); border: 0; border-radius: var(--radius, 6px); padding: 6px 10px; cursor: pointer; }
+  #msg { color: var(--muted-foreground); min-height: 1.5em; margin-top: 8px; }
+</style>
+<h1>Paperclip</h1>
+<p>Run Paperclip agents in Orca worktrees.</p>
+<ol>
+  <li><strong>Start Paperclip</strong><br>In a terminal, run <code>npx paperclipai run</code>.</li>
+  <li><strong>Connect this repo</strong><br>Types the installer into this worktree's terminal. Check it's a shell prompt, then press Enter.<br><br>
+    <button id="run">Type installer into terminal</button><div id="msg" role="status"></div></li>
+  <li><strong>Create the agent</strong><br>The installer opens Paperclip's new-agent page. Paste the config it printed, turn on the heartbeat, and save.</li>
+  <li><strong>Assign an issue</strong><br>A <code>pc-&lt;ISSUE&gt;</code> worktree appears here with the agent working in its terminal.</li>
+</ol>
+<script>
+  const VERSION = "0.2.0";
+  let next = 0;
+  const pending = new Map();
+  addEventListener("message", (e) => {
+    const m = e.data;
+    if (m && m.type === "orca-panel-action-result" && pending.has(m.requestId)) {
+      pending.get(m.requestId)(m);
+      pending.delete(m.requestId);
+    }
+  });
+  const call = (action, params) => new Promise((resolve, reject) => {
+    const requestId = String(++next);
+    pending.set(requestId, (m) => (m.ok ? resolve(m.value) : reject(new Error(m.error || m.errorCode))));
+    parent.postMessage({ type: "orca-panel-action", requestId, action, params }, "*");
+  });
+  const msg = document.getElementById("msg");
+  document.getElementById("run").onclick = async () => {
+    try {
+      const ctx = await call("workspace.readContext");
+      const terminalId = ctx && ctx.terminals && ctx.terminals[0] && ctx.terminals[0].id;
+      if (!terminalId) return (msg.textContent = "Open a terminal in this worktree first.");
+      await call("terminal.sendText", { terminalId, text: "npx -y paperclip-adapter-orca@" + VERSION, enter: false });
+      msg.textContent = "Typed into your terminal. Press Enter there to run it.";
+    } catch (err) {
+      msg.textContent = "Couldn't reach the terminal: " + err.message;
+    }
+  };
+</script>

@@ -1,5 +1,6 @@
 import { definePlugin, runWorker } from "@paperclipai/plugin-sdk";
-import { getCard, setCard, worktreeName } from "../orca.js";
+import { getCard, orca, setCard, worktreeName } from "../orca.js";
+import { setupStatus } from "./setup.js";
 import { decide, type Last } from "./sync.js";
 
 type Tracked = Record<string, { companyId: string; worktreeId?: string }>;
@@ -83,6 +84,12 @@ const plugin = definePlugin({
       for (const [issueId, { companyId }] of Object.entries(index)) {
         await sync(issueId, companyId).catch((err) => ctx.logger.warn(`orca-sync ${issueId} failed: ${err}`));
       }
+    });
+
+    ctx.data.register("setup", async (params) => {
+      const companyId = typeof params.companyId === "string" ? params.companyId : "";
+      const { bin } = await config(companyId);
+      return setupStatus((args) => orca(bin, args), () => (companyId ? ctx.agents.list({ companyId }) : Promise.resolve([])));
     });
   },
 

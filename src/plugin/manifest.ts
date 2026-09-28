@@ -3,11 +3,11 @@ import type { PaperclipPluginManifestV1 } from "@paperclipai/plugin-sdk";
 const manifest: PaperclipPluginManifestV1 = {
   id: "orca.sync",
   apiVersion: 1,
-  version: "0.1.0",
+  version: "0.2.0",
   displayName: "Orca Sync",
   description: "Two-way sync between Paperclip issues and Orca workspace cards, with review in Orca before issues close.",
   author: "supergum",
-  categories: ["automation"],
+  categories: ["automation", "ui"],
   capabilities: [
     "issues.read",
     "issues.update",
@@ -17,8 +17,13 @@ const manifest: PaperclipPluginManifestV1 = {
     "jobs.schedule",
     "plugin.state.read",
     "plugin.state.write",
+    "agents.read",
+    "ui.dashboardWidget.register",
   ],
-  entrypoints: { worker: "./dist/plugin/worker.js" },
+  entrypoints: { worker: "./dist/plugin/worker.js", ui: "./dist/plugin/ui" },
+  ui: {
+    slots: [{ type: "dashboardWidget", id: "orca-setup", displayName: "Orca setup", exportName: "OrcaSetupWidget" }],
+  },
   instanceConfigSchema: {
     type: "object",
     properties: {

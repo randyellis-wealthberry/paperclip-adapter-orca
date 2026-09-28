@@ -154,6 +154,8 @@ Residual risks (documented, accepted at v0.1):
   secret not present in the script text.
 - `buildArgv` — resume argv shape for both agents.
 - `worktreeName` — sanitization/agent fallback determinism.
+- `setupStatus` — Orca down/not ready/ready, agent filtering, no throws.
+- Release — package / Orca manifest / Orca panel versions match.
 
 ## 9. Compatibility
 
@@ -162,3 +164,24 @@ Residual risks (documented, accepted at v0.1):
 - Orca: any build exposing `worktree`/`terminal`/`repo`/`status` with `--json`
   envelopes, incl. the legacy pre-`--agent` create path used here intentionally
   (two-step worktree + terminal create keeps the run script single-purpose).
+
+## 10. Setup surfaces
+
+- **Installer** (`src/cli.ts`, bin `paperclip-adapter-orca`): checks `orca status`,
+  registers the target repo (`orca repo add`, reused if present), installs the adapter
+  and plugin via Paperclip's `/api/adapters/install` and `/api/plugins/install`, saves
+  `{requireReview:true}` plugin config per company, then opens
+  `/<prefix>/agents/new?adapterType=orca_local`. Env: `PAPERCLIP_URL`, `ORCA_BIN`.
+  Exit 1 when Orca or Paperclip is unreachable. Idempotent.
+- **Paperclip dashboard widget** (`orca.sync` slot `orca-setup`, `src/plugin/ui`):
+  data key `setup` returns `{orca:{ok,error?}, repos, agents}` (orca_local agents
+  only). Shows a checklist until an orca_local agent exists, then a one-line
+  "Orca connected" summary. Creating the agent stays a host navigation plus
+  copy-config: the plugin SDK has no agent-create capability, and the widget does
+  not call Paperclip's REST API directly.
+- **Orca plugin** (`orca-plugin.json`, `orca-plugin/`): command
+  `paperclip.connect` and sidebar panel `paperclip-setup` both type
+  `npx -y paperclip-adapter-orca@<plugin version>` into the focused worktree's
+  first terminal **without Enter**. The panel is sandboxed (no network, no
+  links, no storage). The package, Orca manifest, and panel versions must match
+  (enforced by `src/release.test.ts`). Orca installs by git URL pinned to a tag.
