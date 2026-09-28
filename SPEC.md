@@ -190,3 +190,7 @@ Residual risks (documented, accepted at v0.1):
   first terminal **without Enter**. The panel is sandboxed (no network, no
   links, no storage). The package, Orca manifest, and panel versions must match
   (enforced by `src/release.test.ts`). Orca installs by git URL pinned to a tag.
+- **UI parser** (`src/ui-parser.ts`, `exports["./ui-parser"]`, contract 1.0.0):
+  zero-import `parseStdoutLine`. `[orca] …` lines → `system`; claude stream-json
+  and codex jsonl → assistant / thinking / tool_call / tool_result entries;
+  non-JSON → `stdout`. Zero imports enforced by `src/ui-parser.test.ts`.

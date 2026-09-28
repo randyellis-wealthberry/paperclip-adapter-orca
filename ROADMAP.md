@@ -118,7 +118,7 @@ integration.
   cancelled (config gated `cleanup: always|ask|never`, default `never` so
   nothing is destroyed by default).
 
-## R5 — UI parser
+## R5 — UI parser [Shipped]
 
 - Ship the self-contained `ui-parser` module (contract v1.0.0) so the Paperclip
   UI renders orca-specific lines (`[orca] worktree…` headers, terminal

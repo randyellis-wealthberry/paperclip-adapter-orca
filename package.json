@@ -9,6 +9,7 @@
   },
   "exports": {
     ".": "./dist/index.js",
+    "./ui-parser": "./dist/ui-parser.js",
     "./plugin/manifest": "./dist/plugin/manifest.js",
     "./plugin/worker": "./dist/plugin/worker.js",
     "./package.json": "./package.json"
