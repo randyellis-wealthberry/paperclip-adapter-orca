@@ -52,7 +52,7 @@ integration.
 - [ ] **Readable worktree failures**: turn raw Orca envelope JSON errors into
   one-line diagnostics (bad `repo` selector, missing repo path, permission
   denial).
-- [x] CI: Node 24 build + tests on push/PR (`ci.yml`). Still open:, optional integration test with `orca-dev` behind env
+- [x] CI: Node 24 build + tests on push/PR (`ci.yml`). Still open: optional integration test with `orca-dev` behind env
   flag.
 
 ## R1 — Trust surface for the board operator
