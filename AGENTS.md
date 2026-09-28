@@ -22,14 +22,22 @@ Claude/Codex sessions inside Orca-managed worktrees with visible terminals.
 ## 3. Repo map
 
 ```
-src/index.ts       adapter surface: type/label, execute, testEnvironment,
-                   sessionCodec, worktreeName / buildRunScript / buildArgv
-src/orca.ts        Orca CLI wrapper (execFile + --json envelope handling)
-src/index.test.ts  node:test unit suite (no live Orca required)
-dist/              tsc output — the published artifact (not hand-edited)
-package.json       published name, engines, paperclip.adapterUiParser
-.ref/              reference copy of Paperclip + docs (gitignored)
-docs/              configuration + troubleshooting user docs
+src/index.ts        adapter surface: type/label, execute, testEnvironment,
+                    sessionCodec, getConfigSchema, worktreeName / buildRunScript
+src/orca.ts         Orca CLI wrapper (execFile + --json envelope handling)
+src/parse.ts        claude stream-json / codex jsonl output parsers (inlined)
+src/ui-parser.ts    zero-import run-log parser served to the Paperclip UI
+src/cli.ts          `npx paperclip-adapter-orca` one-command installer
+src/plugin/         orca.sync Paperclip plugin: manifest, worker, card/issue
+                    sync, setup data, dashboard widget (ui/)
+src/*.test.ts       node:test unit suites (no live Orca required)
+orca-plugin/        Orca-side plugin (command + setup panel); manifest in
+                    orca-plugin.json, version must match package.json
+deploy/             headless `orca serve` container (Railway)
+dist/               tsc output — the published artifact (not hand-edited)
+package.json        published name, engines, exports, paperclip.adapterUiParser
+.ref/               reference copy of Paperclip + docs (gitignored)
+docs/               configuration + troubleshooting user docs, plans/
 ```
 
 ## 4. Engineering rules
@@ -44,11 +52,11 @@ docs/              configuration + troubleshooting user docs
 4. **Cosmetic Orca failures stay cosmetic.** Card/status/comment updates must
    never fail a run; lifecycle failures (worktree, terminal create) must fail
    fast with a readable message.
-5. **Parse upstream, don't fork.** Usage/session parsing comes from the
-   `@paperclipai/adapter-claude-local` / `-codex-local` packages; prefer bumping
-   their version over reimplementing parsers.
-6. **Pin deps deliberately.** This package's supply-chain surface is three
-   peer adapter packages — do not add runtime dependencies without a SPEC note.
+5. **Parsers are inlined.** `src/parse.ts` is trimmed from Paperclip's
+   claude-local / codex-local adapters (MIT); when those CLIs change output,
+   port the upstream fix rather than inventing new parsing.
+6. **Pin deps deliberately.** Runtime deps are only
+   `@paperclipai/adapter-utils` and `@paperclipai/plugin-sdk` — do not add runtime dependencies without a SPEC note.
 7. **Contract sync.** Behavior change ⇒ update SPEC.md, `agentConfigurationDoc`,
    docs/configuration.md, and troubleshooting rows in the same change.
 8. **Node ≥ 24 only.** Uses recent stdlib APIs; keep module resolution Node16.
